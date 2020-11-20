@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/800quicksand.iml" filepath="$PROJECT_DIR$/.idea/800quicksand.iml" />
+      <module fileurl="file://$PROJECT_DIR$/marathonMonitorserver/marathonMonitorServer.iml" filepath="$PROJECT_DIR$/marathonMonitorserver/marathonMonitorServer.iml" />
+    </modules>
+  </component>
+</project>

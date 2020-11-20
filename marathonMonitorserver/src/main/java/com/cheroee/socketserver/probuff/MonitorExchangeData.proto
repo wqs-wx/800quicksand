@@ -1,0 +1,119 @@
+syntax = "proto3";
+package com.cheroee.socketserver.probuff;
+option optimize_for = SPEED;
+option java_outer_classname="MonitorExchangeDataProto";  
+/*远程监控文件格式
+ * App发送数据Type: PatientAuth\PatientOnline\SmoothedData\HeartRate\TemperatureData\DiseaseData\BodyStateData
+ * Web端发送数据Type: DoctorAuth\SubscriptionType
+ * MonitorService发送Type: ConnectStatus\PatientOnline\SubscriptionType 其余类型中转
+**/
+message MtReceiveData
+{
+  repeated   MonitorExchangeData monitorExchangeDataList=1;  //接收到的数据
+}
+message MonitorExchangeData
+{  
+    DateType dataType = 1;	    					    // 数据类型
+    string userInfoId=2;                                //用户Id  医生端发送 发送是医生的userInfoId    患者发送时患者的userInfoId
+	  string patchId = 3; 							    // 产品序列号, 贴片id
+	  oneof messageData {
+	    MtConnectStatusInfo  statusInfo = 4;			// 连接结果
+	    string secretKey =5;						    // 用户token
+	    MtPatientOnlineInfo patientOnlineInfo = 6;	    // 患者检测状态信息
+	    MtSubscriptionInfo subscriptionInfo = 7;		// 医生订阅数据
+        MtEcgSmoothedRawData smoothedData = 8;  		// 滤波心电数据
+        MtHeartRate heartRate = 9;					    // 心率数据
+        MtTemperatureData temperatureData = 10; 		// 体温数据
+        MtDiseaseData diseaseData = 11; 				// 疾病
+        MtBodyStateData  bodyStateData = 12;			// 姿态
+        LongitudeLatitudeInfo longitudeLatitudeInfo=13; //经纬度信息
+	}
+}
+
+// 枚举消息类型
+enum DateType 	
+{
+    PATIENT_AUTH = 0; 		// 患者鉴权: secretKey 
+    DOCTOR_AUTH = 1;		// 医生鉴权: secretKey
+    SMOOTHED_DATA = 2;		// 滤波数据: EcgSmoothedRawData
+    HEART_RATE = 3;			// 心率数据: HeartRate
+    TEMPERATURE_DATA = 4;	// 体温数据: TemperatureData
+    DISEASE_DATA = 5;		// 疾病数据: DiseaseData
+    BODYSTATE_DATA = 6;		// 姿态:	 BodyStateData
+    CONNECTS_TATUS = 7;		// 连接结果: ConnectStatusInfo
+    PATIENT_ONLINE = 8;		// 患者检测信息及检测状态: PatientOnlineInfo
+    SUBSCRIPTION_TYPE = 9;	// 医生订阅: SubscriptionInfo
+    LONGITUDE_LATITUDE = 10; //经纬度数据： LongitudeLatitudeInfo
+    AVG_HEART_RATE = 11;	 // 平均心率数据: HeartRate
+}
+/*虑波数据*/
+message MtEcgSmoothedRawData
+{
+    uint32 sn = 1; 		//包序号
+	uint64 time = 2;			//采集到此数据的时间戳
+	repeated sint32 value =3;   //心电数组
+}
+/*心率数据*/
+message MtHeartRate
+{
+	uint32 qrsIndex = 1;		//心搏索引
+	sint32 heartRate = 2;		//心率， -1: 无效, > 0: 有效心率
+}
+/* 体温数据*/
+message MtTemperatureData
+{  
+    uint64 time = 1;  //采集时间
+	uint32 value = 2; //体温
+}
+
+/*疾病*/
+message MtDiseaseData
+{
+    uint64 time = 1;  //疾病发生时间点
+	string value = 2; //疾病代码
+}
+/*姿态*/
+message MtBodyStateData
+{
+    uint64 time = 1;  	// 疾病发生时间点
+	sint32 subState = 3;// 姿态(0：未知，1：走路，2：跑步，3：直立：站立或坐姿，4：睡觉)
+}
+/*连接状态*/
+message MtConnectStatusInfo
+{
+    MtStateCode code = 1;  		// 连接状态码
+	string statusDesc = 2;		// 具体描述
+}
+/*状态码*/
+enum MtStateCode {
+	STATE_SUCCESS = 0;		//成功
+	STATE_UNAUTH = 401;	 	//授权未通过
+	STATE_ERROR = 500;	 	//服务器内部错误
+}
+
+/*患者检测信息*/
+message MtPatientOnlineInfo
+{
+    uint32 monitorType = 1; 	// 监测类型  1：心电 2：体温
+    string userInfoId = 2; 	// 用户ID
+	string userInfoName = 3;// 用户姓名
+    string userRunCode = 4;// 跑者编号
+	uint32 status = 5;  		// 1 ：上线监测   2：离线
+}
+
+/*医生订阅或退阅信息*/
+message MtSubscriptionInfo
+{
+    string doctorUserId = 1;	// 医生ID
+	string doctorName = 2;	  // 医生姓名
+	string orgName = 3;	  // 机构名称
+	string userInfoId = 4;		// 订阅患者的userInfoId
+	uint32 actionType = 5;		// 1 ：订阅数据   2：关闭查看数据
+	uint32 monitorType=6; 	// 订阅数据类型  1：心电 2：体温
+}
+/*经纬度信息*/
+message LongitudeLatitudeInfo
+{
+    double  longitude = 1; 		//经度
+    double  latitude = 2;		//纬度
+}
